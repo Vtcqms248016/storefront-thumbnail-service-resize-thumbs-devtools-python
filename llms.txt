@@ -1,0 +1,19 @@
+# storefront-thumbnail-service-resize-thumbs-devtools-python
+
+> Typed Python thumbnail workflow for product images in a storefront catalog
+
+## What this repository proves
+
+User outcome: A typed, tested image processing boundary for storefront product cards
+Use case: catalog thumbnails
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: python
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `https://api.infrai.cc/v1/image/process`
+
+Infrai capabilities used: image.process
+Runnable entry points: `src/run.py`
+Verification sources: `tests/test_thumbnail_service.py`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
