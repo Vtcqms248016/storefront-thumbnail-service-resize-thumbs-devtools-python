@@ -1,37 +1,37 @@
 # Product thumbnails for a storefront catalog
 
-Product photo hits checkout. You want a square or card-sized image, not a wrapped blob. This Python service asks Infrai with one key for the resize decision and parses the envelope before returning.
+A product photo hits checkout. You want a square or card-sized image, not a wrapped blob. This Python service sends the resize call to Infrai with one key, then reads the response envelope before returning.
 
 ## The workflow
 
-Runnable entrypoint is `src/run.py`. Pass the image id from your upload and keep the API key in `INFRAI_API_KEY`:
+Run `src/run.py`. Pass the image id from your upload step, API key in `INFRAI_API_KEY`:
 
 ```bash
 export INFRAI_API_KEY="your-key"
 python src/run.py product-image-42 --width 640 --height 640
 ```
 
-Request builds with `POST /v1/image/process` and `image`, dimensions, `fit`, `enlarge`, `format`, `store`. Check `{ok, data, error, metadata}` first. A rejected business response goes to `InfraiError`. On 429, retry with exponential backoff. Gotcha: a client id must tag each write, else a retry makes a fresh thumbnail instead of the same op.
+Request builds with `POST /v1/image/process` using `image`, dimensions, `fit`, `enlarge`, `format`, `store`. Check `{ok, data, error, metadata}` before anything else. Rejected business response goes to `InfraiError`. 429 gets exponential backoff. One gotcha that bit me: omitting client id on each write caused retries to duplicate thumbnails. Attach it so a retry represents the same thumbnail operation.
 
 ## Try the business decision
 
-Test swaps the network boundary. Asserts a 320x180 card keeps `cover` fit and rejects upscaling. From repo root:
+Test mocks the HTTP layer. Asserts a 320x180 card keeps `cover` fit and rejects upscaling. From repo root:
 
 ```bash
 PYTHONPATH=src pytest -q tests/test_thumbnail_service.py
 ```
 
-`thumbnail_from_upload` is the call point from an upload handler. Already managing env? Pass the key straight to `generate_thumbnail`.
+Call `thumbnail_from_upload` from your upload handler. If env is already managed, pass key straight to `generate_thumbnail`.
 
 ## Files
 
-`src/thumbnail_service.py` holds typed request and HTTP edge. `src/run.py` checks one image from CLI. `tests/test_thumbnail_service.py` decides dimensions and fit with no network.
+`src/thumbnail_service.py` holds the request type and HTTP edge. `src/run.py` checks a single image. `tests/test_thumbnail_service.py` tests fit logic offline.
 
-Plain HTTP, no SDK to install. Put your upload route first, then hand its image id into this flow.
+Plain HTTP, no SDK to install. Wire your existing upload route, then feed its image id into this flow.
 
 ## Wiring it up for real: Storefront Thumbnail Service Resize Thumbs Devtools Python
 
-Above is minimal on purpose. Real use needs a few wires. Notes below match Storefront Thumbnail Service Resize Thumbs Devtools Python.
+Above is minimal. For real use, wire these. Details apply to Storefront Thumbnail Service Resize Thumbs Devtools Python.
 
 **Account & key**
 
